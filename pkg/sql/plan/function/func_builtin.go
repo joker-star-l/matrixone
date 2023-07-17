@@ -17,8 +17,11 @@ package function
 import (
 	"context"
 	"fmt"
+	"io"
 	"math"
 	"math/rand"
+	"net/http"
+	"strconv"
 	"strings"
 	"time"
 	"unsafe"
@@ -32,6 +35,7 @@ import (
 	"github.com/matrixorigin/matrixone/pkg/container/nulls"
 	"github.com/matrixorigin/matrixone/pkg/container/types"
 	"github.com/matrixorigin/matrixone/pkg/container/vector"
+	"github.com/matrixorigin/matrixone/pkg/logutil"
 	"github.com/matrixorigin/matrixone/pkg/pb/plan"
 	"github.com/matrixorigin/matrixone/pkg/sql/plan/function/functionUtil"
 	"github.com/matrixorigin/matrixone/pkg/util/executor"
@@ -1614,6 +1618,43 @@ func (op *opBuiltInRand) builtInRand(parameters []*vector.Vector, result vector.
 		v := op.seed.Float64()
 		if err := rs.Append(v, false); err != nil {
 			return err
+		}
+	}
+	return nil
+}
+
+const baseUrl = "http://127.0.0.1:50051"
+
+func builtInPySum(parameters []*vector.Vector, result vector.FunctionResultWrapper, proc *process.Process, length int) error {
+	p1 := vector.GenerateFunctionFixedTypeParameter[float64](parameters[0])
+	p2 := vector.GenerateFunctionFixedTypeParameter[float64](parameters[1])
+	rs := vector.MustFunctionResult[float64](result)
+	for i := uint64(0); i < uint64(length); i++ {
+		v1, null1 := p1.GetValue(i)
+		v2, null2 := p2.GetValue(i)
+		if null1 || null2 {
+			if err := rs.Append(0, true); err != nil {
+				return err
+			}
+		} else {
+			//if err := rs.Append(v1+v2, false); err != nil {
+			//	return err
+			//}
+			address := fmt.Sprintf("%v/sum/?v1=%v&v2=%v", baseUrl, v1, v2)
+			req, _ := http.NewRequest("GET", address, nil)
+			res, err := http.DefaultClient.Do(req)
+			if err != nil {
+				logutil.Error("Call python server error!")
+				if err := rs.Append(0, true); err != nil {
+					return err
+				}
+			} else {
+				retBytes, _ := io.ReadAll(res.Body)
+				ret, _ := strconv.ParseFloat(string(retBytes), 64)
+				if err := rs.Append(ret, false); err != nil {
+					return err
+				}
+			}
 		}
 	}
 	return nil

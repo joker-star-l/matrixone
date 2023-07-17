@@ -316,6 +316,9 @@ const (
 	CURRVAL
 	LASTVAL
 
+	// python function
+	PY_SUM
+
 	// FUNCTION_END_NUMBER is not a function, just a flag to record the max number of function.
 	// TODO: every one should put the new function id in front of this one if you want to make a new function.
 	FUNCTION_END_NUMBER
@@ -556,4 +559,7 @@ var functionIdRegister = map[string]int32{
 	"setval":                         SETVAL,
 	"currval":                        CURRVAL,
 	"lastval":                        LASTVAL,
+
+	// python function
+	"py_sum": PY_SUM,
 }
