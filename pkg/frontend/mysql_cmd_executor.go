@@ -3080,6 +3080,9 @@ func (mce *MysqlCmdExecutor) executeStmt(requestCtx context.Context,
 		}
 	case *tree.CreateFunction:
 		selfHandle = true
+		if err = st.Valid(); err != nil {
+			return err
+		}
 		if err = mce.handleCreateFunction(requestCtx, st); err != nil {
 			return err
 		}
