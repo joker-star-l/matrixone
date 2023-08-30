@@ -38,6 +38,7 @@ import (
 	"github.com/matrixorigin/matrixone/pkg/pb/metadata"
 	"github.com/matrixorigin/matrixone/pkg/perfcounter"
 	"github.com/matrixorigin/matrixone/pkg/proxy"
+	"github.com/matrixorigin/matrixone/pkg/pythonserver"
 	"github.com/matrixorigin/matrixone/pkg/tnservice"
 	"github.com/matrixorigin/matrixone/pkg/util/metric/stats"
 	tomlutil "github.com/matrixorigin/matrixone/pkg/util/toml"
@@ -49,10 +50,11 @@ var (
 	defaultMemoryLimit    = 1 << 40
 
 	supportServiceTypes = map[string]metadata.ServiceType{
-		metadata.ServiceType_CN.String():    metadata.ServiceType_CN,
-		metadata.ServiceType_TN.String():    metadata.ServiceType_TN,
-		metadata.ServiceType_LOG.String():   metadata.ServiceType_LOG,
-		metadata.ServiceType_PROXY.String(): metadata.ServiceType_PROXY,
+		metadata.ServiceType_CN.String():         metadata.ServiceType_CN,
+		metadata.ServiceType_TN.String():         metadata.ServiceType_TN,
+		metadata.ServiceType_LOG.String():        metadata.ServiceType_LOG,
+		metadata.ServiceType_PROXY.String():      metadata.ServiceType_PROXY,
+		metadata.ServiceType_PYTHON_UDF.String(): metadata.ServiceType_PYTHON_UDF,
 	}
 )
 
@@ -66,6 +68,8 @@ type LaunchConfig struct {
 	CNServiceConfigsFiles []string `toml:"cnservices"`
 	// CNServiceConfigsFiles log service config files
 	ProxyServiceConfigsFiles []string `toml:"proxy-services"`
+	// PythonUdfServiceConfigsFiles python udf service config files
+	PythonUdfServiceConfigsFiles []string `toml:"python-udf-services"`
 }
 
 // Config mo-service configuration
@@ -90,6 +94,8 @@ type Config struct {
 	CN cnservice.Config `toml:"cn"`
 	// ProxyConfig is the config of proxy.
 	ProxyConfig proxy.Config `toml:"proxy"`
+	// PythonUdfServerConfig is the config of python udf server
+	PythonUdfServerConfig pythonserver.Config `toml:"python-udf-server"`
 	// Observability parameters for the metric/trace
 	Observability config.ObservabilityParameters `toml:"observability"`
 
